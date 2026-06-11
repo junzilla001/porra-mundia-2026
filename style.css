@@ -1,0 +1,71 @@
+:root {
+    --bg-color: #020617; /* Azul ultra oscuro */
+    --card-bg: rgba(30, 41, 59, 0.6);
+    --text-main: #f8fafc;
+    --accent: #38bdf8;
+    --jon-color: #10b981;
+    --lucia-color: #ec4899;
+    --gold: #fbbf24;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { background-color: var(--bg-color); color: var(--text-main); padding: 20px 20px 100px; background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 70%); min-height: 100vh;}
+
+.container { max-width: 800px; margin: 0 auto; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* Animaciones */
+.fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Utilidades */
+.section-title { text-align: center; color: var(--accent); font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; }
+.glass { background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+/* Hero y Botones */
+.hero { text-align: center; margin: 40px 0 60px; }
+.hero h1 { font-size: 2.5rem; background: linear-gradient(to right, var(--accent), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero h2 { color: #94a3b8; font-weight: 400; letter-spacing: 4px; }
+
+.btn-main { padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; border: none; cursor: pointer; width: 100%; margin-bottom: 15px; color: white; transition: 0.3s; }
+.btn-main:active { transform: scale(0.98); }
+.btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-jon { background: linear-gradient(135deg, var(--jon-color), #059669); }
+.btn-lucia { background: linear-gradient(135deg, var(--lucia-color), #db2777); }
+.btn-neutral { background: linear-gradient(135deg, #475569, #334155); }
+
+/* Draft */
+.budget-panel { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 10px; z-index: 100; margin-bottom: 20px;}
+.budget-amount { font-size: 2.5rem; font-weight: 900; color: var(--gold); }
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+.group-card { padding: 15px; border-radius: 12px; background: rgba(15, 23, 42, 0.8); border: 1px solid #334155;}
+.group-card h3 { text-align: center; color: #64748b; margin-bottom: 10px; }
+.team-btn { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; background: #0f172a;}
+.team-btn.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 10px rgba(56,189,248,0.2); }
+.team-flag { width: 28px; border-radius: 3px; margin-right: 10px;}
+
+/* Dashboard y Reglas */
+.score-board { display: flex; justify-content: space-between; align-items: center; padding: 30px; margin-bottom: 25px; position: relative;}
+.vs-badge { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 10px; border-radius: 50%; font-weight: bold; color: var(--gold); border: 2px solid #334155;}
+.score-card { text-align: center; width: 40%; }
+.score-card h3 { margin-bottom: 10px; }
+.score-card.jon h3 { color: var(--jon-color); }
+.score-card.lucia h3 { color: var(--lucia-color); }
+.points { font-size: 3.5rem; font-weight: 900; }
+.chart-container { padding: 15px; margin-bottom: 20px;}
+
+.rules-card { padding: 20px; margin-bottom: 15px; }
+.rules-card h3 { color: var(--accent); margin-bottom: 10px; }
+.rules-card li { margin-bottom: 8px; margin-left: 20px; color: #cbd5e1;}
+
+/* Admin Partido */
+.admin-panel { padding: 25px; }
+.match-input-row { display: flex; gap: 10px; }
+select, input { width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #475569; font-size: 1rem;}
+input[type="number"] { width: 80px; text-align: center; font-weight: bold;}
+
+/* Navegación Inferior */
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #334155; z-index: 1000; }
+.bottom-nav button { background: none; border: none; color: #94a3b8; font-size: 0.8rem; cursor: pointer; transition: 0.3s; }
+.bottom-nav button:hover { color: var(--accent); transform: translateY(-2px); }
