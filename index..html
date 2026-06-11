@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Porra Mundial 2026: Jon vs Lucía</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc;
+            --accent: #38bdf8; --accent-hover: #0284c7;
+            --jon-color: #10b981; --lucia-color: #ec4899; --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding: 20px; }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2 { text-align: center; margin-bottom: 20px; color: var(--accent); }
+        
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        button {
+            background-color: var(--accent); color: white; border: none;
+            padding: 12px 24px; border-radius: 8px; font-size: 1rem;
+            cursor: pointer; transition: 0.3s; width: 100%; margin: 10px 0; font-weight: bold;
+        }
+        button:hover { background-color: var(--accent-hover); }
+        button:disabled { background-color: #475569; cursor: not-allowed; opacity: 0.5; }
+        .btn-jon { background-color: var(--jon-color); }
+        .btn-lucia { background-color: var(--lucia-color); }
+
+        .budget-panel {
+            background: var(--card-bg); padding: 15px; border-radius: 8px;
+            text-align: center; margin-bottom: 20px; position: sticky; top: 10px; z-index: 10;
+            border: 2px solid var(--accent);
+        }
+        .budget-amount { font-size: 2rem; font-weight: bold; color: #fbbf24; }
+        
+        .groups-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .group-card { background: var(--card-bg); padding: 15px; border-radius: 8px; }
+        
+        select {
+            width: 100%; padding: 10px; border-radius: 5px; background: #334155;
+            color: white; border: 1px solid #475569; margin-top: 10px; font-size: 0.95rem;
+        }
+
+        .score-board { display: flex; justify-content: space-around; background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .score-card { text-align: center; }
+        .score-card.jon { color: var(--jon-color); }
+        .score-card.lucia { color: var(--lucia-color); }
+        .points { font-size: 3rem; font-weight: bold; }
+        
+        .chart-container { background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;}
+        .admin-panel { background: var(--card-bg); padding: 20px; border-radius: 8px; }
+        input[type="number"], input[type="text"] {
+            width: 100%; padding: 10px; margin: 5px 0 15px; border-radius: 5px;
+            background: #334155; color: white; border: 1px solid #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="screen-login" class="screen active">
+        <h1>🏆 Porra Mundial 2026 🏆</h1>
+        <h2>Selecciona tu perfil</h2>
+        <button class="btn-jon" onclick="iniciarDraft('Jon')">Soy Jon</button>
+        <button class="btn-lucia" onclick="iniciarDraft('Lucia')">Soy Lucía</button>
+        <hr style="margin: 30px 0; border-color: #334155;">
+        <button onclick="verDashboard()">Ver Clasificación y Gráfico</button>
+        <button onclick="verAdmin()" style="background-color: #64748b;">Panel de Resultados</button>
+    </div>
+
+    <div id="screen-draft" class="screen">
+        <h1 id="draft-title">Selección de Equipos</h1>
+        <div class="budget-panel">
+            <p>Presupuesto Restante</p>
+            <div class="budget-amount"><span id="budget-display">1500</span> 🪙</div>
+            <p style="font-size: 0.8rem; color: #94a3b8;">Elige 1 de los 12 grupos. Máximo 1500 monedas.</p>
+        </div>
+        <form id="draft-form">
+            <div id="groups-container" class="groups-grid"></div>
+            <button type="button" id="btn-confirm-draft" onclick="confirmarDraft()" style="margin-top: 20px;">Bloquear Mi Selección 🔒</button>
+            <button type="button" style="background-color: transparent; border: 1px solid #64748b;" onclick="volverInicio()">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="screen-dashboard" class="screen">
+        <h1>Estado de la Porra</h1>
+        <div class="score-board">
+            <div class="score-card jon"><h2>Jon</h2><div class="points" id="pts-jon">0</div></div>
+            <div class="score-card lucia"><h2>Lucía</h2><div class="points" id="pts-lucia">0</div></div>
+        </div>
+        <div class="chart-container"><canvas id="scoreChart"></canvas></div>
+        <button onclick="volverInicio()">Volver al Inicio</button>
+    </div>
+
+    <div id="screen-admin" class="screen">
+        <h1>Panel de Administrador</h1>
+        <div class="admin-panel">
+            <label>Selecciona el Jugador:</label>
+            <select id="admin-player"><option value="Jon">Jon</option><option value="Lucia">Lucía</option></select>
+            <label>Puntos (+ / -):</label>
+            <input type="number" id="admin-points" placeholder="Ej: 3 (Victoria), -1 (Derrota)...">
+            <label>Concepto:</label>
+            <input type="text" id="admin-reason" placeholder="Ej: Gol de España, Pasa a Octavos...">
+            <button onclick="aplicarPuntuacion()">Aplicar Puntuación</button>
+        </div>
+        <button style="background-color: transparent; border: 1px solid #64748b;" onclick="volverInicio()">Volver al Inicio</button>
+    </div>
+
+</div>
+
+<script>
+    // Base de datos de los 12 Grupos oficiales del Mundial 2026 y Precios ajustados
+    const equipos = {
+        'A': [{nombre: 'México', precio: 150}, {nombre: 'R. Checa', precio: 100}, {nombre: 'R. Corea', precio: 100}, {nombre: 'Sudáfrica', precio: 50}],
+        'B': [{nombre: 'Suiza', precio: 150}, {nombre: 'Canadá', precio: 100}, {nombre: 'Bosnia y Herz.', precio: 50}, {nombre: 'Catar', precio: 50}],
+        'C': [{nombre: 'Brasil', precio: 250}, {nombre: 'Marruecos', precio: 150}, {nombre: 'Escocia', precio: 100}, {nombre: 'Haití', precio: 50}],
+        'D': [{nombre: 'EEUU', precio: 150}, {nombre: 'Turquía', precio: 100}, {nombre: 'Australia', precio: 100}, {nombre: 'Paraguay', precio: 50}],
+        'E': [{nombre: 'Alemania', precio: 250}, {nombre: 'Ecuador', precio: 100}, {nombre: 'C. Marfil', precio: 100}, {nombre: 'Curazao', precio: 50}],
+        'F': [{nombre: 'Países Bajos', precio: 200}, {nombre: 'Japón', precio: 100}, {nombre: 'Suecia', precio: 100}, {nombre: 'Túnez', precio: 50}],
+        'G': [{nombre: 'Bélgica', precio: 200}, {nombre: 'Egipto', precio: 100}, {nombre: 'Irán', precio: 50}, {nombre: 'N. Zelanda', precio: 50}],
+        'H': [{nombre: 'España', precio: 250}, {nombre: 'Uruguay', precio: 150}, {nombre: 'Arabia Saudí', precio: 50}, {nombre: 'Cabo Verde', precio: 50}],
+        'I': [{nombre: 'Francia', precio: 250}, {nombre: 'Senegal', precio: 150}, {nombre: 'Noruega', precio: 100}, {nombre: 'Irak', precio: 50}],
+        'J': [{nombre: 'Argentina', precio: 250}, {nombre: 'Austria', precio: 150}, {nombre: 'Argelia', precio: 100}, {nombre: 'Jordania', precio: 50}],
+        'K': [{nombre: 'Portugal', precio: 250}, {nombre: 'Colombia', precio: 150}, {nombre: 'RD Congo', precio: 50}, {nombre: 'Uzbekistán', precio: 50}],
+        'L': [{nombre: 'Inglaterra', precio: 250}, {nombre: 'Croacia', precio: 150}, {nombre: 'Ghana', precio: 100}, {nombre: 'Panamá', precio: 50}]
+    };
+
+    const PRESUPUESTO_INICIAL = 1500;
+    let usuarioActual = '';
+    let db = JSON.parse(localStorage.getItem('porra2026DB')) || {
+        Jon: { draft: null, puntos: 0, historial: [0] },
+        Lucia: { draft: null, puntos: 0, historial: [0] }
+    };
+    let myChart = null;
+
+    function mostrarPantalla(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+    function volverInicio() { mostrarPantalla('screen-login'); }
+
+    function iniciarDraft(nombre) {
+        usuarioActual = nombre;
+        if (db[nombre].draft) {
+            alert(`¡Oye ${nombre}! Ya has bloqueado tu equipo. A competir.`);
+            return;
+        }
+        
+        document.getElementById('draft-title').innerText = `Draft de ${nombre}`;
+        const container = document.getElementById('groups-container');
+        container.innerHTML = '';
+
+        for (const [grupo, lista] of Object.entries(equipos)) {
+            let html = `<div class="group-card"><h3>Grupo ${grupo}</h3>
+                        <select class="team-select" data-grupo="${grupo}" onchange="recalcularPresupuesto()">
+                        <option value="0" data-precio="0">Ninguno (0 🪙)</option>`;
+            lista.forEach(eq => { html += `<option value="${eq.nombre}" data-precio="${eq.precio}">${eq.nombre} (${eq.precio})</option>`; });
+            html += `</select></div>`;
+            container.innerHTML += html;
+        }
+        
+        recalcularPresupuesto();
+        mostrarPantalla('screen-draft');
+    }
+
+    function recalcularPresupuesto() {
+        let gastado = 0;
+        document.querySelectorAll('.team-select').forEach(select => {
+            gastado += parseInt(select.options[select.selectedIndex].dataset.precio);
+        });
+        
+        const restante = PRESUPUESTO_INICIAL - gastado;
+        const display = document.getElementById('budget-display');
+        const btnConfirm = document.getElementById('btn-confirm-draft');
+        
+        display.innerText = restante;
+        
+        if (restante < 0) {
+            display.style.color = 'var(--danger)';
+            btnConfirm.disabled = true;
+        } else {
+            display.style.color = '#fbbf24';
+            btnConfirm.disabled = false;
+        }
+    }
+
+    function confirmarDraft() {
+        let seleccion = {};
+        let faltan = false;
+        
+        document.querySelectorAll('.team-select').forEach(select => {
+            if (select.value === "0") faltan = true;
+            seleccion[select.dataset.grupo] = select.value;
+        });
+
+        if (faltan) { alert("¡Debes elegir una selección en CADA uno de los 12 grupos!"); return; }
+
+        db[usuarioActual].draft = seleccion;
+        guardarDB();
+        alert(`¡Equipos guardados para ${usuarioActual}!`);
+        volverInicio();
+    }
+
+    function verDashboard() {
+        document.getElementById('pts-jon').innerText = db.Jon.puntos;
+        document.getElementById('pts-lucia').innerText = db.Lucia.puntos;
+        dibujarGrafico();
+        mostrarPantalla('screen-dashboard');
+    }
+
+    function dibujarGrafico() {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        const maxPartidos = Math.max(db.Jon.historial.length, db.Lucia.historial.length);
+        const labels = Array.from({length: maxPartidos}, (_, i) => `Momento ${i}`);
+
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Jon', data: db.Jon.historial, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', tension: 0.3, fill: true },
+                    { label: 'Lucía', data: db.Lucia.historial, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.2)', tension: 0.3, fill: true }
+                ]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } }, color: '#fff' }
+        });
+    }
+
+    function verAdmin() { mostrarPantalla('screen-admin'); }
+
+    function aplicarPuntuacion() {
+        const player = document.getElementById('admin-player').value;
+        const pts = parseInt(document.getElementById('admin-points').value);
+        if (isNaN(pts)) { alert("Pon un número válido"); return; }
+
+        db[player].puntos += pts;
+        db[player].historial.push(db[player].puntos);
+        guardarDB();
+
+        alert(`✅ Puntuación aplicada.`);
+        document.getElementById('admin-points').value = '';
+        document.getElementById('admin-reason').value = '';
+    }
+
+    function guardarDB() { localStorage.setItem('porra2026DB', JSON.stringify(db)); }
+</script>
+</body>
+</html>
