@@ -3,342 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Porra Mundial 2026: Jon vs Lucía</title>
+    <title>Porra Mundial 2026</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc;
-            --accent: #38bdf8; --accent-hover: #0284c7;
-            --jon-color: #10b981; --lucia-color: #ec4899; --danger: #ef4444;
-            --gold: #fbbf24; --card-hover: #334155;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding: 15px; padding-bottom: 80px; }
-        
-        .container { max-width: 900px; margin: 0 auto; }
-        h1, h2 { text-align: center; margin-bottom: 20px; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
-        
-        .screen { display: none; animation: fadeIn 0.4s ease; }
-        .screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Botones principales */
-        .btn-main {
-            background: linear-gradient(135deg, var(--accent), #2563eb); color: white; border: none;
-            padding: 15px 24px; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-            cursor: pointer; transition: all 0.3s; width: 100%; margin: 10px 0; font-weight: bold;
-        }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); }
-        .btn-main:disabled { background: #475569; cursor: not-allowed; opacity: 0.5; box-shadow: none; transform: none; }
-        .btn-jon { background: linear-gradient(135deg, var(--jon-color), #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
-        .btn-lucia { background: linear-gradient(135deg, var(--lucia-color), #db2777); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
-        .btn-secondary { background: transparent; border: 2px solid #64748b; color: #cbd5e1; padding: 12px; width: 100%; border-radius: 12px; margin-top: 10px; cursor: pointer; transition: 0.3s; font-weight: bold;}
-
-        /* Panel de Presupuesto Flotante (Glassmorphism) */
-        .budget-panel {
-            background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 25px; 
-            position: sticky; top: 10px; z-index: 100; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: space-between; align-items: center;
-        }
-        .budget-info { text-align: left; }
-        .budget-amount { font-size: 2.2rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); transition: color 0.3s;}
-        
-        /* Grid de Grupos y Tarjetas de Equipos */
-        .groups-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .group-card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid #334155;}
-        .group-card h3 { color: #94a3b8; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 8px;}
-        
-        .team-btn {
-            display: flex; align-items: center; justify-content: space-between;
-            background: #0f172a; padding: 12px 15px; border-radius: 10px;
-            border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px;
-        }
-        .team-btn:hover { background: var(--card-hover); transform: translateX(5px); }
-        .team-btn.selected {
-            border-color: var(--accent); background: rgba(56, 189, 248, 0.1);
-            box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.15);
-        }
-        .team-info { display: flex; align-items: center; gap: 12px; font-size: 1.05rem; font-weight: 600;}
-        .team-flag { width: 32px; height: auto; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .team-price { font-weight: 800; color: var(--gold); background: rgba(251, 191, 36, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.9rem;}
-
-        /* Dashboard y Admin */
-        .score-board { display: flex; justify-content: space-around; background: var(--card-bg); padding: 30px 20px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);}
-        .score-card { text-align: center; }
-        .score-card.jon h2 { color: var(--jon-color); }
-        .score-card.lucia h2 { color: var(--lucia-color); }
-        .points { font-size: 4rem; font-weight: 900; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.3);}
-        
-        .chart-container { background: var(--card-bg); padding: 20px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);}
-        .admin-panel { background: var(--card-bg); padding: 25px; border-radius: 16px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0 20px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #475569; font-size: 1rem;}
-        input:focus, select:focus { outline: none; border-color: var(--accent); }
-    </style>
 </head>
 <body>
 
 <div class="container">
     
     <!-- PANTALLA INICIO -->
-    <div id="screen-login" class="screen active">
-        <h1>🏆 MUNDIAL 2026 🏆</h1>
-        <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 40px;">Draft & Fantasy</h2>
+    <div id="screen-login" class="screen active fade-in">
+        <div class="hero">
+            <h1>🏆 MUNDIAL 2026 🏆</h1>
+            <h2>Draft & Fantasy</h2>
+        </div>
         <button class="btn-main btn-jon" onclick="iniciarDraft('Jon')">Entrar como Jon</button>
         <button class="btn-main btn-lucia" onclick="iniciarDraft('Lucia')">Entrar como Lucía</button>
-        <hr style="margin: 40px 0; border: none; border-top: 1px solid #334155;">
-        <button class="btn-main" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);" onclick="verDashboard()">📊 Ver Clasificación</button>
-        <button class="btn-secondary" onclick="verAdmin()">⚙️ Panel de Resultados</button>
+        <button class="btn-main btn-neutral" onclick="mostrarPantalla('screen-dashboard')">📊 Ver Clasificación</button>
     </div>
 
     <!-- PANTALLA DRAFT -->
-    <div id="screen-draft" class="screen">
-        <h1 id="draft-title" style="margin-bottom: 5px;">Selección de Equipos</h1>
-        <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Elige una selección por grupo.</p>
-        
-        <div class="budget-panel">
-            <div class="budget-info">
-                <p style="color: #cbd5e1; font-weight: bold; margin: 0; text-transform: uppercase; font-size: 0.85rem;">Presupuesto</p>
-                <p style="color: #94a3b8; font-size: 0.75rem; margin: 0;" id="teams-count">0/12 Equipos</p>
+    <div id="screen-draft" class="screen fade-in">
+        <h1 id="draft-title" class="section-title">Selección</h1>
+        <div class="budget-panel glass">
+            <div>
+                <p class="label">Presupuesto</p>
+                <p class="sub-label" id="teams-count">0/12 Equipos</p>
             </div>
             <div class="budget-amount"><span id="budget-display">1500</span> 🪙</div>
         </div>
-
         <div id="groups-container" class="groups-grid"></div>
-        
-        <div style="margin-top: 30px;">
+        <div style="margin-top: 20px;">
             <button class="btn-main" id="btn-confirm-draft" onclick="confirmarDraft()">Bloquear Mi Selección 🔒</button>
-            <button class="btn-secondary" onclick="volverInicio()">Cancelar</button>
         </div>
     </div>
 
     <!-- PANTALLA DASHBOARD -->
-    <div id="screen-dashboard" class="screen">
-        <h1>Marcador General</h1>
-        <div class="score-board">
-            <div class="score-card jon"><h2>JON</h2><div class="points" id="pts-jon">0</div></div>
-            <div class="score-card lucia"><h2>LUCÍA</h2><div class="points" id="pts-lucia">0</div></div>
+    <div id="screen-dashboard" class="screen fade-in">
+        <h1 class="section-title">Marcador General</h1>
+        <div class="score-board glass">
+            <div class="score-card jon"><h3>JON</h3><div class="points" id="pts-jon">0</div></div>
+            <div class="vs-badge">VS</div>
+            <div class="score-card lucia"><h3>LUCÍA</h3><div class="points" id="pts-lucia">0</div></div>
         </div>
-        <div class="chart-container"><canvas id="scoreChart"></canvas></div>
-        <button class="btn-secondary" onclick="volverInicio()">Volver al Menú</button>
+        <div class="chart-container glass"><canvas id="scoreChart"></canvas></div>
     </div>
 
-    <!-- PANTALLA ADMIN -->
-    <div id="screen-admin" class="screen">
-        <h1>Administración</h1>
-        <div class="admin-panel">
-            <label style="color: #94a3b8; font-weight: bold;">Jugador:</label>
-            <select id="admin-player"><option value="Jon">Jon</option><option value="Lucia">Lucía</option></select>
-            
-            <label style="color: #94a3b8; font-weight: bold;">Puntos a sumar/restar:</label>
-            <input type="number" id="admin-points" placeholder="Ej: 3 (Victoria), -1 (Derrota)...">
-            
-            <label style="color: #94a3b8; font-weight: bold;">Motivo (Historial):</label>
-            <input type="text" id="admin-reason" placeholder="Ej: Gol de España...">
-            
-            <button class="btn-main" onclick="aplicarPuntuacion()">Aplicar Puntuación</button>
+    <!-- PANTALLA REGLAS -->
+    <div id="screen-rules" class="screen fade-in">
+        <h1 class="section-title">Reglamento Oficial</h1>
+        <div class="rules-card glass">
+            <h3>💰 El Draft</h3>
+            <p>Cada jugador tiene <strong>1500 monedas</strong> para fichar a 12 selecciones (una de cada grupo). Una vez bloqueado el equipo, no hay vuelta atrás.</p>
         </div>
-        <button class="btn-secondary" onclick="volverInicio()">Volver al Menú</button>
+        <div class="rules-card glass">
+            <h3>⚽ Puntuación por Partido</h3>
+            <ul>
+                <li><strong>Victoria:</strong> +3 puntos</li>
+                <li><strong>Empate:</strong> +1 punto</li>
+                <li><strong>Gol a favor:</strong> +1 punto</li>
+                <li><strong>Portería a cero:</strong> +2 puntos</li>
+                <li><strong>Derrota:</strong> 0 puntos (pero ojo con los goles en contra, no suman, pero duelen en el orgullo).</li>
+            </ul>
+        </div>
+        <div class="rules-card glass">
+            <h3>🏆 Fases Finales (Bonus)</h3>
+            <p>Pasar de ronda otorgará puntos extra masivos que se meterán manualmente desde el panel de control.</p>
+        </div>
     </div>
+
+    <!-- PANTALLA ADMIN (PARTIDOS REALES) -->
+    <div id="screen-admin" class="screen fade-in">
+        <h1 class="section-title">Cargar Partido Real</h1>
+        <div class="admin-panel glass">
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 15px;">Mete el resultado real. El sistema detectará automáticamente si Jon o Lucía tienen estos equipos y les sumará los puntos según las reglas.</p>
+            
+            <div class="match-input-row">
+                <select id="team-local"></select>
+                <input type="number" id="goals-local" placeholder="Goles" min="0">
+            </div>
+            <div style="text-align: center; color: var(--accent); font-weight: bold; margin: 10px 0;">VS</div>
+            <div class="match-input-row">
+                <select id="team-visitor"></select>
+                <input type="number" id="goals-visitor" placeholder="Goles" min="0">
+            </div>
+            
+            <button class="btn-main" style="margin-top: 20px;" onclick="procesarPartido()">Calcular y Sumar Puntos ⚙️</button>
+        </div>
+    </div>
+
+    <!-- MENÚ DE NAVEGACIÓN INFERIOR -->
+    <nav class="bottom-nav">
+        <button onclick="volverInicio()">🏠<br>Inicio</button>
+        <button onclick="mostrarPantalla('screen-dashboard')">📊<br>Rank</button>
+        <button onclick="mostrarPantalla('screen-rules')">📜<br>Reglas</button>
+        <button onclick="cargarSelectsPartidos(); mostrarPantalla('screen-admin')">⚙️<br>Admin</button>
+    </nav>
 
 </div>
 
-<script>
-    // Base de datos Avanzada: Grupos, Precios ajustados e ISO Codes para banderas
-    const equipos = {
-        'A': [{nombre: 'México', precio: 165, iso: 'mx'}, {nombre: 'R. Checa', precio: 135, iso: 'cz'}, {nombre: 'R. Corea', precio: 120, iso: 'kr'}, {nombre: 'Sudáfrica', precio: 65, iso: 'za'}],
-        'B': [{nombre: 'Suiza', precio: 155, iso: 'ch'}, {nombre: 'Canadá', precio: 115, iso: 'ca'}, {nombre: 'Bosnia', precio: 85, iso: 'ba'}, {nombre: 'Catar', precio: 55, iso: 'qa'}],
-        'C': [{nombre: 'Brasil', precio: 255, iso: 'br'}, {nombre: 'Marruecos', precio: 145, iso: 'ma'}, {nombre: 'Escocia', precio: 105, iso: 'gb-sct'}, {nombre: 'Haití', precio: 40, iso: 'ht'}],
-        'D': [{nombre: 'EEUU', precio: 160, iso: 'us'}, {nombre: 'Turquía', precio: 125, iso: 'tr'}, {nombre: 'Australia', precio: 110, iso: 'au'}, {nombre: 'Paraguay', precio: 85, iso: 'py'}],
-        'E': [{nombre: 'Alemania', precio: 240, iso: 'de'}, {nombre: 'Ecuador', precio: 130, iso: 'ec'}, {nombre: 'C. Marfil', precio: 110, iso: 'ci'}, {nombre: 'Curazao', precio: 35, iso: 'cw'}],
-        'F': [{nombre: 'Países Bajos', precio: 215, iso: 'nl'}, {nombre: 'Japón', precio: 140, iso: 'jp'}, {nombre: 'Suecia', precio: 135, iso: 'se'}, {nombre: 'Túnez', precio: 75, iso: 'tn'}],
-        'G': [{nombre: 'Bélgica', precio: 205, iso: 'be'}, {nombre: 'Egipto', precio: 115, iso: 'eg'}, {nombre: 'Irán', precio: 85, iso: 'ir'}, {nombre: 'N. Zelanda', precio: 60, iso: 'nz'}],
-        'H': [{nombre: 'España', precio: 250, iso: 'es'}, {nombre: 'Uruguay', precio: 175, iso: 'uy'}, {nombre: 'Arabia S.', precio: 70, iso: 'sa'}, {nombre: 'Cabo Verde', precio: 45, iso: 'cv'}],
-        'I': [{nombre: 'Francia', precio: 260, iso: 'fr'}, {nombre: 'Senegal', precio: 150, iso: 'sn'}, {nombre: 'Noruega', precio: 145, iso: 'no'}, {nombre: 'Irak', precio: 50, iso: 'iq'}],
-        'J': [{nombre: 'Argentina', precio: 255, iso: 'ar'}, {nombre: 'Austria', precio: 155, iso: 'at'}, {nombre: 'Argelia', precio: 105, iso: 'dz'}, {nombre: 'Jordania', precio: 45, iso: 'jo'}],
-        'K': [{nombre: 'Portugal', precio: 245, iso: 'pt'}, {nombre: 'Colombia', precio: 165, iso: 'co'}, {nombre: 'RD Congo', precio: 75, iso: 'cd'}, {nombre: 'Uzbekistán', precio: 65, iso: 'uz'}],
-        'L': [{nombre: 'Inglaterra', precio: 250, iso: 'gb-eng'}, {nombre: 'Croacia', precio: 160, iso: 'hr'}, {nombre: 'Ghana', precio: 95, iso: 'gh'}, {nombre: 'Panamá', precio: 60, iso: 'pa'}]
-    };
-
-    const PRESUPUESTO_INICIAL = 1500;
-    let usuarioActual = '';
-    let seleccionesActuales = {}; // Estado temporal del draft
-    
-    let db = JSON.parse(localStorage.getItem('porra2026DB_Pro')) || {
-        Jon: { draft: null, puntos: 0, historial: [0] },
-        Lucia: { draft: null, puntos: 0, historial: [0] }
-    };
-    let myChart = null;
-
-    function mostrarPantalla(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        window.scrollTo(0,0);
-    }
-    function volverInicio() { mostrarPantalla('screen-login'); seleccionesActuales = {}; }
-
-    // --- RENDERIZADO DEL DRAFT ---
-    function iniciarDraft(nombre) {
-        usuarioActual = nombre;
-        if (db[nombre].draft) {
-            alert(`¡Oye ${nombre}! Ya has bloqueado tus 12 equipos. ¡Suerte en el Mundial!`);
-            return;
-        }
-        
-        seleccionesActuales = {}; // Resetear selecciones
-        document.getElementById('draft-title').innerText = `Draft de ${nombre}`;
-        renderizarGrupos();
-        actualizarUI()
-        mostrarPantalla('screen-draft');
-    }
-
-    function renderizarGrupos() {
-        const container = document.getElementById('groups-container');
-        container.innerHTML = '';
-
-        for (const [grupo, lista] of Object.entries(equipos)) {
-            let divGrupo = document.createElement('div');
-            divGrupo.className = 'group-card';
-            divGrupo.innerHTML = `<h3>Grupo ${grupo}</h3>`;
-            
-            lista.forEach(eq => {
-                let divTeam = document.createElement('div');
-                divTeam.className = 'team-btn';
-                divTeam.id = `btn-${grupo}-${eq.iso}`;
-                divTeam.onclick = () => toggleSeleccion(grupo, eq);
-                
-                divTeam.innerHTML = `
-                    <div class="team-info">
-                        <img class="team-flag" src="https://flagcdn.com/w40/${eq.iso}.png" alt="${eq.nombre}">
-                        <span>${eq.nombre}</span>
-                    </div>
-                    <div class="team-price">${eq.precio} 🪙</div>
-                `;
-                divGrupo.appendChild(divTeam);
-            });
-            container.appendChild(divGrupo);
-        }
-    }
-
-    // --- LÓGICA DE SELECCIÓN ---
-    function toggleSeleccion(grupo, equipo) {
-        // Si ya está seleccionado, lo quitamos
-        if (seleccionesActuales[grupo] && seleccionesActuales[grupo].nombre === equipo.nombre) {
-            delete seleccionesActuales[grupo];
-        } else {
-            // Si no, lo seleccionamos (reemplazando si había otro en ese grupo)
-            seleccionesActuales[grupo] = equipo;
-        }
-        actualizarUI();
-    }
-
-    function actualizarUI() {
-        let gastado = 0;
-        let numEquipos = 0;
-
-        // Limpiar todas las clases selected
-        document.querySelectorAll('.team-btn').forEach(btn => btn.classList.remove('selected'));
-
-        // Calcular gastos y añadir clases a los seleccionados
-        for (const [grupo, equipo] of Object.entries(seleccionesActuales)) {
-            gastado += equipo.precio;
-            numEquipos++;
-            document.getElementById(`btn-${grupo}-${equipo.iso}`).classList.add('selected');
-        }
-
-        const restante = PRESUPUESTO_INICIAL - gastado;
-        const display = document.getElementById('budget-display');
-        const btnConfirm = document.getElementById('btn-confirm-draft');
-        
-        display.innerText = restante;
-        document.getElementById('teams-count').innerText = `${numEquipos}/12 Equipos`;
-        
-        if (restante < 0) {
-            display.style.color = 'var(--danger)';
-            btnConfirm.disabled = true;
-            btnConfirm.innerText = "Presupuesto Excedido ❌";
-        } else {
-            display.style.color = 'var(--gold)';
-            if (numEquipos === 12) {
-                btnConfirm.disabled = false;
-                btnConfirm.innerText = "Bloquear Mi Selección 🔒";
-            } else {
-                btnConfirm.disabled = true;
-                btnConfirm.innerText = "Faltan Equipos por Elegir";
-            }
-        }
-    }
-
-    function confirmarDraft() {
-        if (Object.keys(seleccionesActuales).length !== 12) {
-            alert("¡Debes elegir una selección en CADA uno de los 12 grupos!"); return; 
-        }
-        db[usuarioActual].draft = seleccionesActuales;
-        guardarDB();
-        alert(`¡Equipos guardados para ${usuarioActual}!`);
-        volverInicio();
-    }
-
-    // --- DASHBOARD Y ADMIN ---
-    function verDashboard() {
-        document.getElementById('pts-jon').innerText = db.Jon.puntos;
-        document.getElementById('pts-lucia').innerText = db.Lucia.puntos;
-        dibujarGrafico();
-        mostrarPantalla('screen-dashboard');
-    }
-
-    function dibujarGrafico() {
-        const ctx = document.getElementById('scoreChart').getContext('2d');
-        const maxPartidos = Math.max(db.Jon.historial.length, db.Lucia.historial.length);
-        const labels = Array.from({length: maxPartidos}, (_, i) => `Jornada ${i}`);
-
-        if (myChart) myChart.destroy();
-
-        // Degradados para la gráfica
-        let gradientJon = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientJon.addColorStop(0, 'rgba(16, 185, 129, 0.4)'); gradientJon.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        
-        let gradientLucia = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientLucia.addColorStop(0, 'rgba(236, 72, 153, 0.4)'); gradientLucia.addColorStop(1, 'rgba(236, 72, 153, 0)');
-
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'Jon', data: db.Jon.historial, borderColor: '#10b981', backgroundColor: gradientJon, tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#10b981' },
-                    { label: 'Lucía', data: db.Lucia.historial, borderColor: '#ec4899', backgroundColor: gradientLucia, tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#ec4899' }
-                ]
-            },
-            options: { 
-                responsive: true, 
-                plugins: { legend: { labels: { color: '#f8fafc', font: {family: 'system-ui', size: 14} } } },
-                scales: { 
-                    y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
-                } 
-            }
-        });
-    }
-
-    function verAdmin() { mostrarPantalla('screen-admin'); }
-
-    function aplicarPuntuacion() {
-        const player = document.getElementById('admin-player').value;
-        const pts = parseInt(document.getElementById('admin-points').value);
-        if (isNaN(pts)) { alert("Pon un número válido"); return; }
-
-        db[player].puntos += pts;
-        db[player].historial.push(db[player].puntos);
-        guardarDB();
-
-        alert(`✅ Puntuación aplicada a ${player}`);
-        document.getElementById('admin-points').value = '';
-        document.getElementById('admin-reason').value = '';
-    }
-
-    function guardarDB() { localStorage.setItem('porra2026DB_Pro', JSON.stringify(db)); }
-</script>
+<script src="app.js"></script>
 </body>
 </html>
