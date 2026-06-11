@@ -1,15 +1,48 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCAOF7ENV5MSHYQp_-nGqhrcinZK0dOSSI",
+  authDomain: "porramundial2026-7e8a8.firebaseapp.com",
+  projectId: "porramundial2026-7e8a8",
+  storageBucket: "porramundial2026-7e8a8.firebasestorage.app",
+  messagingSenderId: "427609716936",
+  appId: "1:427609716936:web:0ea087f0ecaa96b1fc8dfd",
+  measurementId: "G-EWT5BZPWY3"
+};
+
+const app = initializeApp(firebaseConfig);
+const dbFirestore = getFirestore(app);
+
+// --- MODIFICACIÓN DE TU LÓGICA ---
+// En lugar de leer de localStorage, conectamos con la nube:
+onSnapshot(doc(dbFirestore, "juego", "estado"), (doc) => {
+    if (doc.exists()) {
+        db = doc.data();
+        // Si el usuario está viendo el dashboard, forzamos a repintar el gráfico
+        if (document.getElementById('screen-dashboard').classList.contains('active')) {
+            verDashboard();
+        }
+    }
+});
+
+function guardarDB() {
+    setDoc(doc(dbFirestore, "juego", "estado"), db);
+}
+
 // BASE DE DATOS AJUSTADA (Precios rebajados y optimizados)
 const equipos = {
     'A': [{nombre: 'México', precio: 160, iso: 'mx'}, {nombre: 'R. Checa', precio: 130, iso: 'cz'}, {nombre: 'R. Corea', precio: 115, iso: 'kr'}, {nombre: 'Sudáfrica', precio: 60, iso: 'za'}],
-    'B': [{nombre: 'Suiza', precio: 150, iso: 'ch'}, {nombre: 'Canadá', precio: 110, iso: 'ca'}, {nombre: 'Bosnia', precio: 80, iso: 'ba'}, {nombre: 'Catar', precio: 50, iso: 'qa'}],
-    'C': [{nombre: 'Brasil', precio: 250, iso: 'br'}, {nombre: 'Marruecos', precio: 140, iso: 'ma'}, {nombre: 'Escocia', precio: 100, iso: 'gb-sct'}, {nombre: 'Haití', precio: 40, iso: 'ht'}],
-    'D': [{nombre: 'EEUU', precio: 155, iso: 'us'}, {nombre: 'Turquía', precio: 120, iso: 'tr'}, {nombre: 'Australia', precio: 105, iso: 'au'}, {nombre: 'Paraguay', precio: 80, iso: 'py'}],
-    'E': [{nombre: 'Alemania', precio: 235, iso: 'de'}, {nombre: 'Ecuador', precio: 125, iso: 'ec'}, {nombre: 'C. Marfil', precio: 105, iso: 'ci'}, {nombre: 'Curazao', precio: 35, iso: 'cw'}],
+    'B': [{nombre: 'Suiza', precio: 150, iso: 'ch'}, {nombre: 'Canadá', precio: 130, iso: 'ca'}, {nombre: 'Bosnia', precio: 80, iso: 'ba'}, {nombre: 'Catar', precio: 50, iso: 'qa'}],
+    'C': [{nombre: 'Brasil', precio: 250, iso: 'br'}, {nombre: 'Marruecos', precio: 155, iso: 'ma'}, {nombre: 'Escocia', precio: 100, iso: 'gb-sct'}, {nombre: 'Haití', precio: 40, iso: 'ht'}],
+    'D': [{nombre: 'EEUU', precio: 155, iso: 'us'}, {nombre: 'Turquía', precio: 120, iso: 'tr'}, {nombre: 'Australia', precio: 105, iso: 'au'}, {nombre: 'Paraguay', precio: 70, iso: 'py'}],
+    'E': [{nombre: 'Alemania', precio: 235, iso: 'de'}, {nombre: 'Ecuador', precio: 125, iso: 'ec'}, {nombre: 'C. Marfil', precio: 110, iso: 'ci'}, {nombre: 'Curazao', precio: 35, iso: 'cw'}],
     'F': [{nombre: 'Países Bajos', precio: 210, iso: 'nl'}, {nombre: 'Japón', precio: 135, iso: 'jp'}, {nombre: 'Suecia', precio: 130, iso: 'se'}, {nombre: 'Túnez', precio: 70, iso: 'tn'}],
     'G': [{nombre: 'Bélgica', precio: 200, iso: 'be'}, {nombre: 'Egipto', precio: 110, iso: 'eg'}, {nombre: 'Irán', precio: 80, iso: 'ir'}, {nombre: 'N. Zelanda', precio: 55, iso: 'nz'}],
-    'H': [{nombre: 'España', precio: 245, iso: 'es'}, {nombre: 'Uruguay', precio: 170, iso: 'uy'}, {nombre: 'Arabia S.', precio: 65, iso: 'sa'}, {nombre: 'Cabo Verde', precio: 45, iso: 'cv'}],
+    'H': [{nombre: 'España', precio: 255, iso: 'es'}, {nombre: 'Uruguay', precio: 170, iso: 'uy'}, {nombre: 'Arabia S.', precio: 65, iso: 'sa'}, {nombre: 'Cabo Verde', precio: 45, iso: 'cv'}],
     'I': [{nombre: 'Francia', precio: 255, iso: 'fr'}, {nombre: 'Senegal', precio: 145, iso: 'sn'}, {nombre: 'Noruega', precio: 140, iso: 'no'}, {nombre: 'Irak', precio: 50, iso: 'iq'}],
-    'J': [{nombre: 'Argentina', precio: 250, iso: 'ar'}, {nombre: 'Austria', precio: 150, iso: 'at'}, {nombre: 'Argelia', precio: 100, iso: 'dz'}, {nombre: 'Jordania', precio: 45, iso: 'jo'}],
+    'J': [{nombre: 'Argentina', precio: 245, iso: 'ar'}, {nombre: 'Austria', precio: 150, iso: 'at'}, {nombre: 'Argelia', precio: 100, iso: 'dz'}, {nombre: 'Jordania', precio: 45, iso: 'jo'}],
     'K': [{nombre: 'Portugal', precio: 240, iso: 'pt'}, {nombre: 'Colombia', precio: 160, iso: 'co'}, {nombre: 'RD Congo', precio: 70, iso: 'cd'}, {nombre: 'Uzbekistán', precio: 60, iso: 'uz'}],
     'L': [{nombre: 'Inglaterra', precio: 245, iso: 'gb-eng'}, {nombre: 'Croacia', precio: 155, iso: 'hr'}, {nombre: 'Ghana', precio: 90, iso: 'gh'}, {nombre: 'Panamá', precio: 55, iso: 'pa'}]
 };
