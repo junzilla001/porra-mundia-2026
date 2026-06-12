@@ -12,7 +12,6 @@
 
 <div class="container">
     
-    <!-- INICIO -->
     <div id="screen-login" class="screen active fade-in">
         <div class="hero">
             <h1>🏆 MUNDIAL 2026 🏆</h1>
@@ -22,7 +21,6 @@
         <button class="btn-main btn-jon" onclick="intentarEntrarDraft('Jon')">Entrar como Jon</button>
         <button class="btn-main btn-lucia" onclick="intentarEntrarDraft('Lucia')">Entrar como Lucía</button>
 
-        <!-- NUEVO: RESUMEN DE EQUIPOS (Se muestra solo cuando hay equipos elegidos) -->
         <div id="equipos-resumen-container" style="display: none; margin-top: 40px; animation: fadeIn 0.5s;">
             <h2 class="section-title" style="font-size: 1.3rem;">Rendimiento de los Drafts</h2>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -32,7 +30,6 @@
         </div>
     </div>
 
-    <!-- DRAFT -->
     <div id="screen-draft" class="screen fade-in">
         <h1 id="draft-title" class="section-title">Selección</h1>
         
@@ -57,7 +54,6 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="screen-dashboard" class="screen fade-in">
         <h1 class="section-title">Marcador General</h1>
         <div class="score-board glass">
@@ -68,23 +64,31 @@
         <div class="chart-container glass"><canvas id="scoreChart"></canvas></div>
     </div>
 
-    <!-- REGLAS -->
     <div id="screen-rules" class="screen fade-in">
         <h1 class="section-title">Reglamento Oficial</h1>
+        
+        <div class="rules-card glass">
+            <h3>💰 El Draft y Presupuesto</h3>
+            <p>Cada jugador cuenta con un presupuesto estricto de <strong>1500 monedas</strong>. El objetivo es formar un equipo de <strong>12 selecciones</strong>, eligiendo obligatoriamente <strong>una selección de cada uno de los 12 grupos</strong> disponibles.</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; color: #94a3b8;"><em>Nota estratégica:</em> Las grandes potencias son muy caras, por lo que tendrás que equilibrar tu equipo buscando selecciones "cenicienta" más baratas para cuadrar las cuentas. ¡Una vez bloquees tu equipo definitivo, no podrás hacer cambios!</p>
+        </div>
+
         <div class="rules-card glass">
             <h3>⭐ Multiplicador (Valor 100-140)</h3>
-            <p>Elige un equipo entre 100 y 140 monedas. Sus puntos positivos se multiplican por 2.</p>
+            <p>De las 12 selecciones que elijas en tu Draft, deberás nombrar a una de ellas como tu "Selección Estrella". Para que el juego sea justo, esta selección <strong>debe tener un coste de entre 100 y 140 monedas</strong>. Todos los puntos positivos que consiga ese equipo se multiplicarán por 2.</p>
         </div>
+        
         <div class="rules-card glass">
             <h3>⚽ Puntuación por Partido</h3>
             <ul>
-                <li><strong>Victoria (Solo Grupos):</strong> +5 puntos</li>
+                <li><strong>Victoria (Solo Fase de Grupos):</strong> +5 puntos</li>
                 <li><strong>Gol a favor:</strong> +3 puntos</li>
                 <li><strong>Portería a cero:</strong> +3 puntos</li>
-                <li><strong>Derrota (Solo Grupos):</strong> -3 puntos</li>
+                <li><strong>Derrota (Solo Fase de Grupos):</strong> -3 puntos</li>
                 <li><strong>Gol en contra:</strong> -1 punto</li>
             </ul>
         </div>
+        
         <div class="rules-card glass">
             <h3>🏆 Bonus por Avance de Ronda</h3>
             <ul>
@@ -98,7 +102,6 @@
         </div>
     </div>
 
-    <!-- ADMIN -->
     <div id="screen-admin" class="screen fade-in">
         <h1 class="section-title">Panel de Control</h1>
         
@@ -107,19 +110,16 @@
             <button class="tab-btn" onclick="switchAdminTab('knockout')">Fase Final (Cruces)</button>
         </div>
 
-        <!-- Pestaña: Partidos de Grupos -->
         <div id="tab-matches" class="admin-panel glass" style="padding: 15px;">
             <h3 style="margin-bottom: 15px; color: var(--accent);">Fase de Grupos</h3>
             <div id="group-matches-container"></div>
         </div>
 
-        <!-- Pestaña Unificada: Eliminatorias y Bonos -->
         <div id="tab-knockout" class="admin-panel" style="display: none; background: transparent; padding: 0; box-shadow: none; border: none;">
             <div id="knockout-container"></div>
         </div>
     </div>
 
-    <!-- NAVEGACIÓN -->
     <nav class="bottom-nav">
         <button onclick="volverInicio()">🏠<br>Inicio</button>
         <button onclick="mostrarPantalla('screen-dashboard')">📊<br>Rank</button>
