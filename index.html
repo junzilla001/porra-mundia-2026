@@ -12,15 +12,18 @@
 
 <div class="container">
     
+    <!-- INICIO -->
     <div id="screen-login" class="screen active fade-in">
         <div class="hero">
             <h1>🏆 MUNDIAL 2026 🏆</h1>
             <h2>Draft & Fantasy Edition</h2>
         </div>
-        <button class="btn-main btn-jon" onclick="iniciarDraft('Jon')">Entrar como Jon</button>
-        <button class="btn-main btn-lucia" onclick="iniciarDraft('Lucia')">Entrar como Lucía</button>
+        <!-- Piden contraseña antes de entrar -->
+        <button class="btn-main btn-jon" onclick="intentarEntrarDraft('Jon')">Entrar como Jon</button>
+        <button class="btn-main btn-lucia" onclick="intentarEntrarDraft('Lucia')">Entrar como Lucía</button>
     </div>
 
+    <!-- DRAFT -->
     <div id="screen-draft" class="screen fade-in">
         <h1 id="draft-title" class="section-title">Selección</h1>
         
@@ -45,6 +48,7 @@
         </div>
     </div>
 
+    <!-- DASHBOARD -->
     <div id="screen-dashboard" class="screen fade-in">
         <h1 class="section-title">Marcador General</h1>
         <div class="score-board glass">
@@ -55,94 +59,67 @@
         <div class="chart-container glass"><canvas id="scoreChart"></canvas></div>
     </div>
 
+    <!-- REGLAS -->
     <div id="screen-rules" class="screen fade-in">
         <h1 class="section-title">Reglamento Oficial</h1>
         <div class="rules-card glass">
             <h3>⭐ Multiplicador (Valor 100-140)</h3>
-            <p>Debes elegir un equipo de tu draft cuyo valor esté entre 100 y 140 monedas. Los puntos que consiga se multiplicarán por 2 (solo los positivos).</p>
+            <p>Elige un equipo entre 100 y 140 monedas. Sus puntos positivos se multiplican por 2.</p>
         </div>
         <div class="rules-card glass">
             <h3>⚽ Puntuación por Partido</h3>
             <ul>
-                <li><strong>Victoria (Solo en Grupos):</strong> +5 puntos</li>
+                <li><strong>Victoria (Solo Grupos):</strong> +5 puntos</li>
                 <li><strong>Gol a favor:</strong> +3 puntos</li>
                 <li><strong>Portería a cero:</strong> +3 puntos</li>
-                <li><strong>Derrota:</strong> -3 puntos</li>
+                <li><strong>Derrota (Solo Grupos):</strong> -3 puntos</li>
                 <li><strong>Gol en contra:</strong> -1 punto</li>
             </ul>
-            <p style="font-size: 0.85rem; margin-top: 10px; color: #94a3b8;">* En rondas eliminatorias, la victoria/derrota del partido no suma ni resta, solo cuentan los goles y las porterías a cero.</p>
         </div>
         <div class="rules-card glass">
             <h3>🏆 Bonus por Avance de Ronda</h3>
             <ul>
-                <li>Pasar Fase de Grupos: <strong>+10 puntos</strong></li>
-                <li>Caer Eliminado en Grupos: <strong style="color: var(--danger);">-5 puntos</strong></li>
-                <li>Pasar 16avos: <strong>+15 puntos</strong></li>
-                <li>Pasar 8avos: <strong>+20 puntos</strong></li>
-                <li>Pasar Cuartos: <strong>+25 puntos</strong></li>
-                <li>Pasar Semifinales: <strong>+30 puntos</strong></li>
-                <li>Ganar el Mundial: <strong style="color: var(--gold);">+40 puntos</strong></li>
+                <li>Pasar Fase de Grupos: <strong>+10 pts</strong> | Caer: <strong style="color: var(--danger);">-5 pts</strong></li>
+                <li>Pasar 16avos: <strong>+15 pts</strong></li>
+                <li>Pasar 8avos: <strong>+20 pts</strong></li>
+                <li>Pasar Cuartos: <strong>+25 pts</strong></li>
+                <li>Pasar Semifinales: <strong>+30 pts</strong></li>
+                <li>Ganar el Mundial: <strong style="color: var(--gold);">+40 pts</strong></li>
             </ul>
         </div>
     </div>
 
+    <!-- ADMIN -->
     <div id="screen-admin" class="screen fade-in">
         <h1 class="section-title">Panel de Control</h1>
         
         <div class="admin-tabs">
             <button class="tab-btn active" onclick="switchAdminTab('matches')">Partidos de Grupos</button>
-            <button class="tab-btn" onclick="switchAdminTab('knockout')">Eliminatorias</button>
-            <button class="tab-btn" onclick="switchAdminTab('bonuses')">Rondas (Bonus)</button>
+            <button class="tab-btn" onclick="switchAdminTab('knockout')">Fase Final (Cruces)</button>
         </div>
 
-        <div id="tab-matches" class="admin-panel glass">
+        <!-- Pestaña: Partidos de Grupos -->
+        <div id="tab-matches" class="admin-panel glass" style="padding: 15px;">
             <h3 style="margin-bottom: 15px; color: var(--accent);">Fase de Grupos</h3>
             <div id="group-matches-container"></div>
         </div>
 
-        <div id="tab-knockout" class="admin-panel glass" style="display: none;">
-            <h3 style="margin-bottom: 15px; color: var(--jon-color);">Partido de Eliminatoria</h3>
-            <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">Solo suma goles (+3/-1) y portería a cero (+3).</p>
-            <div class="match-input-row">
-                <select id="ko-local" class="custom-select"></select>
-                <input type="number" id="ko-goals-local" placeholder="Goles">
-            </div>
-            <div style="text-align: center; color: var(--accent); margin: 10px 0;">VS</div>
-            <div class="match-input-row">
-                <select id="ko-visitor" class="custom-select"></select>
-                <input type="number" id="ko-goals-visitor" placeholder="Goles">
-            </div>
-            <button class="btn-main" style="margin-top: 15px;" onclick="procesarEliminatoria()">Calcular Partido</button>
+        <!-- Pestaña Unificada: Eliminatorias y Bonos -->
+        <div id="tab-knockout" class="admin-panel" style="display: none; background: transparent; padding: 0; box-shadow: none; border: none;">
+            <div id="knockout-container"></div>
         </div>
-
-        <div id="tab-bonuses" class="admin-panel glass" style="display: none;">
-            <h3 style="margin-bottom: 15px; color: var(--gold);">Bonos de Avance</h3>
-            <select id="bonus-player" class="custom-select" style="margin-bottom: 10px;">
-                <option value="Jon">Jon</option><option value="Lucia">Lucía</option>
-            </select>
-            <select id="bonus-type" class="custom-select" style="margin-bottom: 15px;">
-                <option value="10">Pasar Fase de Grupos (+10)</option>
-                <option value="-5">Caer en Grupos (-5)</option>
-                <option value="15">Pasar 16avos (+15)</option>
-                <option value="20">Pasar 8avos (+20)</option>
-                <option value="25">Pasar Cuartos (+25)</option>
-                <option value="30">Pasar Semifinales (+30)</option>
-                <option value="40">Ganar el Mundial (+40)</option>
-            </select>
-            <button class="btn-main" onclick="aplicarBono()">Aplicar Bono a Jugador</button>
-        </div>
-
     </div>
 
+    <!-- NAVEGACIÓN -->
     <nav class="bottom-nav">
         <button onclick="volverInicio()">🏠<br>Inicio</button>
         <button onclick="mostrarPantalla('screen-dashboard')">📊<br>Rank</button>
         <button onclick="mostrarPantalla('screen-rules')">📜<br>Reglas</button>
-        <button onclick="prepararAdmin(); mostrarPantalla('screen-admin')">⚙️<br>Admin</button>
+        <!-- Pide contraseña para el Admin -->
+        <button onclick="intentarEntrarAdmin()">⚙️<br>Admin</button>
     </nav>
 
 </div>
 
-<script src="app.js"></script>
 </body>
 </html>
