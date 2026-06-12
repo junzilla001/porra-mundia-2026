@@ -1,9 +1,23 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// !!! PEGA AQUÍ TU firebaseConfig !!!
+// !!! PEGA TUS DATOS DE FIREBASE AQUÍ !!!
 const firebaseConfig = {
-  // Tu configuración de Firebase
+
+  apiKey: "AIzaSyCAOF7ENV5MSHYQp_-nGqhrcinZK0dOSSI",
+
+  authDomain: "porramundial2026-7e8a8.firebaseapp.com",
+
+  projectId: "porramundial2026-7e8a8",
+
+  storageBucket: "porramundial2026-7e8a8.firebasestorage.app",
+
+  messagingSenderId: "427609716936",
+
+  appId: "1:427609716936:web:0ea087f0ecaa96b1fc8dfd",
+
+  measurementId: "G-EWT5BZPWY3"
+
 };
 
 const app = initializeApp(firebaseConfig);
@@ -12,21 +26,17 @@ const dbFirestore = getFirestore(app);
 onSnapshot(doc(dbFirestore, "juego", "estado"), (doc) => {
     if (doc.exists()) {
         db = doc.data();
-        if (document.getElementById('screen-dashboard').classList.contains('active')) {
-            verDashboard();
-        }
+        if (document.getElementById('screen-dashboard').classList.contains('active')) verDashboard();
+        renderizarResumenEquipos(); // Actualiza los equipos en la pantalla principal
     }
 });
 
 async function guardarDB() {
-    try {
-        await setDoc(doc(dbFirestore, "juego", "estado"), db);
-    } catch (e) {
-        console.error("Error al guardar:", e);
-    }
+    try { await setDoc(doc(dbFirestore, "juego", "estado"), db); } 
+    catch (e) { console.error("Error al guardar:", e); }
 }
 
-// BASE DE DATOS
+// BASE DE DATOS EQUIPOS
 const equipos = {
     'A': [{nombre: 'México', precio: 160, iso: 'mx'}, {nombre: 'R. Checa', precio: 130, iso: 'cz'}, {nombre: 'R. Corea', precio: 115, iso: 'kr'}, {nombre: 'Sudáfrica', precio: 60, iso: 'za'}],
     'B': [{nombre: 'Suiza', precio: 150, iso: 'ch'}, {nombre: 'Canadá', precio: 130, iso: 'ca'}, {nombre: 'Bosnia', precio: 80, iso: 'ba'}, {nombre: 'Catar', precio: 50, iso: 'qa'}],
@@ -45,12 +55,9 @@ const equipos = {
 const generarPartidosGrupos = () => {
     let partidos = [];
     for (const [grupo, lista] of Object.entries(equipos)) {
-        partidos.push({l: lista[0].nombre, v: lista[3].nombre});
-        partidos.push({l: lista[2].nombre, v: lista[1].nombre});
-        partidos.push({l: lista[1].nombre, v: lista[3].nombre});
-        partidos.push({l: lista[0].nombre, v: lista[2].nombre});
-        partidos.push({l: lista[1].nombre, v: lista[0].nombre});
-        partidos.push({l: lista[3].nombre, v: lista[2].nombre});
+        partidos.push({l: lista[0].nombre, v: lista[3].nombre}); partidos.push({l: lista[2].nombre, v: lista[1].nombre});
+        partidos.push({l: lista[1].nombre, v: lista[3].nombre}); partidos.push({l: lista[0].nombre, v: lista[2].nombre});
+        partidos.push({l: lista[1].nombre, v: lista[0].nombre}); partidos.push({l: lista[3].nombre, v: lista[2].nombre});
     }
     return partidos;
 };
@@ -66,20 +73,21 @@ let db = JSON.parse(localStorage.getItem('mundialDB_v4')) || {
 };
 
 // SEGURIDAD Y NAVEGACIÓN
-window.intentarEntrarDraft = function(nombre) {
+function intentarEntrarDraft(nombre) {
+    if (db[nombre].draft) {
+        alert(`Ya has elegido tus equipos, ${nombre}.`); return;
+    }
     let pwd = prompt(`Introduce la contraseña para ${nombre}:`);
     if (nombre === 'Jon' && pwd === 'Jonymelavo') iniciarDraft(nombre);
     else if (nombre === 'Lucia' && pwd === 'Lucilinda') iniciarDraft(nombre);
     else if (pwd !== null) alert("Contraseña incorrecta ❌");
-};
+}
 
-window.intentarEntrarAdmin = function() {
+function intentarEntrarAdmin() {
     let pwd = prompt("Introduce la Contraseña de Administrador:");
-    if (pwd === '241010') {
-        prepararAdmin();
-        mostrarPantalla('screen-admin');
-    } else if (pwd !== null) alert("Contraseña incorrecta ❌");
-};
+    if (pwd === '241010') { prepararAdmin(); mostrarPantalla('screen-admin'); } 
+    else if (pwd !== null) alert("Contraseña incorrecta ❌");
+}
 
 function mostrarPantalla(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -96,10 +104,41 @@ function switchAdminTab(tab) {
     event.target.classList.add('active');
 }
 
+// RENDERIZAR RESUMEN EQUIPOS EN INICIO
+function renderizarResumenEquipos() {
+    const container = document.getElementById('equipos-resumen-container');
+    const resJon = document.getElementById('resumen-jon');
+    const resLucia = document.getElementById('resumen-lucia');
+    
+    if (!db.Jon.draft && !db.Lucia.draft) { container.style.display = 'none'; return; }
+    container.style.display = 'block';
+
+    const renderDraft = (jugador, draftObj, multiplicador) => {
+        if (!draftObj) return `<h3 style="text-align:center; color:#94a3b8;">${jugador} aún no ha fichado</h3>`;
+        let html = `<h3 style="text-align:center; margin-bottom: 15px; color: ${jugador === 'Jon' ? 'var(--jon-color)' : 'var(--lucia-color)'};">${jugador}</h3>`;
+        
+        // Ordenar equipos por puntos de mayor a menor
+        let equiposList = Object.values(draftObj).sort((a, b) => (b.puntosGanados || 0) - (a.puntosGanados || 0));
+        
+        equiposList.forEach(eq => {
+            let pts = eq.puntosGanados || 0;
+            let estrella = (eq.nombre === multiplicador) ? '⭐' : '';
+            html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.95rem; background:rgba(0,0,0,0.2); padding:5px 10px; border-radius:5px;">
+                    <span><img src="https://flagcdn.com/w20/${eq.iso}.png" style="width:20px; vertical-align:middle; margin-right:8px; border-radius:2px;">${eq.nombre} ${estrella}</span>
+                    <span style="font-weight:bold; color:var(--gold);">${pts} pts</span>
+                </div>`;
+        });
+        return html;
+    };
+
+    resJon.innerHTML = renderDraft('Jon', db.Jon.draft, db.Jon.multiplicador);
+    resLucia.innerHTML = renderDraft('Lucia', db.Lucia.draft, db.Lucia.multiplicador);
+}
+
 // LÓGICA DRAFT
 function iniciarDraft(nombre) {
     usuarioActual = nombre;
-    if (db[nombre].draft) return alert(`Ya tienes tu equipo cerrado, ${nombre}.`);
     seleccionesActuales = {}; 
     renderizarGrupos();
     actualizarUI();
@@ -155,8 +194,7 @@ function actualizarUI() {
     const selectMult = document.getElementById('multiplier-select');
 
     if (restante >= 0 && count === 12) {
-        panelMult.style.display = 'block';
-        selectMult.innerHTML = '';
+        panelMult.style.display = 'block'; selectMult.innerHTML = '';
         opcionesMultiplicador.forEach(nombre => selectMult.innerHTML += `<option value="${nombre}">${nombre}</option>`);
         if (opcionesMultiplicador.length > 0) btnConfirm.disabled = false;
         else { btnConfirm.disabled = true; selectMult.innerHTML = '<option>❌ Faltan equipos entre 100 y 140</option>'; }
@@ -166,6 +204,12 @@ function actualizarUI() {
 async function confirmarDraft() {
     db[usuarioActual].draft = seleccionesActuales;
     db[usuarioActual].multiplicador = document.getElementById('multiplier-select').value;
+    
+    // Inicializar puntosGanados a 0 en cada equipo
+    for (const key in db[usuarioActual].draft) {
+        db[usuarioActual].draft[key].puntosGanados = 0;
+    }
+
     await guardarDB();
     alert(`¡Selección bloqueada! Estrella: ${db[usuarioActual].multiplicador}`);
     volverInicio();
@@ -190,11 +234,16 @@ function calcularPuntosEquipo(equipoNombre, golesFavor, golesContra, esGrupo, ju
 function aplicarPuntosJugador(jugador, equipoNombre, golesFavor, golesContra, esGrupo) {
     if (!db[jugador].draft) return "";
     let mensaje = "";
-    for (const eq of Object.values(db[jugador].draft)) {
+    for (const key in db[jugador].draft) {
+        let eq = db[jugador].draft[key];
         if (eq.nombre === equipoNombre) {
             let pts = calcularPuntosEquipo(equipoNombre, golesFavor, golesContra, esGrupo, jugador);
             db[jugador].puntos += pts;
             db[jugador].historial.push(db[jugador].puntos);
+            
+            // Sumar puntos individuales al equipo
+            eq.puntosGanados = (eq.puntosGanados || 0) + pts;
+
             let estrella = db[jugador].multiplicador === equipoNombre ? " ⭐(x2)" : "";
             mensaje = `➡️ ${jugador}: ${pts} pts por ${equipoNombre}${estrella}\n`;
         }
@@ -207,7 +256,7 @@ function prepararAdmin() {
     const contGrupos = document.getElementById('group-matches-container');
     const contKnockout = document.getElementById('knockout-container');
     
-    // 1. Renderizar Fase de Grupos
+    // 1. Renderizar Grupos
     contGrupos.innerHTML = '';
     generarPartidosGrupos().forEach((p, index) => {
         let matchId = `match-g-${index}`;
@@ -222,36 +271,30 @@ function prepararAdmin() {
                     <button class="btn-calc ${procesado ? 'done' : ''}" onclick="procesarPartidoGrupo('${matchId}', '${p.l}', '${p.v}')" ${procesado ? 'disabled' : ''}>${procesado ? '✓' : 'Calc'}</button>
                 </div>
                 <div class="match-team" style="text-align:left;">${p.v}</div>
-            </div>
-        `;
+            </div>`;
     });
 
-    // 2. Renderizar Cuadro de Fase Final (Automático)
+    // 2. Renderizar Cuadro
     contKnockout.innerHTML = `
         <div class="admin-panel glass" style="margin-bottom: 20px;">
             <h3 style="color: var(--gold); margin-bottom: 15px;">Cierre Fase de Grupos</h3>
-            <p style="font-size: 0.85rem; color:#94a3b8; margin-bottom:10px;">Aplica los bonos de fin de fase aquí.</p>
             <div style="display:flex; gap:10px;">
                 <select id="team-bonus-group" class="custom-select"></select>
                 <button class="btn-main" style="background:#10b981; padding:10px;" onclick="aplicarBonoGrupos(10)">Pasa (+10)</button>
                 <button class="btn-main" style="background:#ef4444; padding:10px;" onclick="aplicarBonoGrupos(-5)">Cae (-5)</button>
             </div>
-        </div>
-    `;
+        </div>`;
 
     const fasesKnockout = [
-        { id: '16avos', name: '16avos de Final', desc: 'Suma +15 al ganador', bonus: 15, matches: 16 },
-        { id: '8avos', name: 'Octavos de Final', desc: 'Suma +20 al ganador', bonus: 20, matches: 8 },
-        { id: 'cuartos', name: 'Cuartos de Final', desc: 'Suma +25 al ganador', bonus: 25, matches: 4 },
-        { id: 'semis', name: 'Semifinales', desc: 'Suma +30 al ganador', bonus: 30, matches: 2 },
-        { id: 'final', name: 'La Gran Final', desc: 'Suma +40 al Campeón', bonus: 40, matches: 1 }
+        { id: '16avos', name: '16avos de Final', bonus: 15, matches: 16 },
+        { id: '8avos', name: 'Octavos de Final', bonus: 20, matches: 8 },
+        { id: 'cuartos', name: 'Cuartos de Final', bonus: 25, matches: 4 },
+        { id: 'semis', name: 'Semifinales', bonus: 30, matches: 2 },
+        { id: 'final', name: 'La Gran Final', bonus: 40, matches: 1 }
     ];
 
     fasesKnockout.forEach(fase => {
-        let htmlFase = `<div class="admin-panel glass" style="margin-bottom: 20px;">
-            <h3 style="color: var(--accent); margin-bottom: 5px;">${fase.name}</h3>
-            <p style="font-size: 0.85rem; color:#94a3b8; margin-bottom:15px;">${fase.desc}</p>`;
-        
+        let htmlFase = `<div class="admin-panel glass" style="margin-bottom: 20px;"><h3 style="color: var(--accent); margin-bottom: 15px;">${fase.name} (+${fase.bonus} pts)</h3>`;
         for(let i=0; i<fase.matches; i++) {
             let matchId = `ko-${fase.id}-${i}`;
             let procesado = db.Jon.partidosProcesados.includes(matchId);
@@ -267,25 +310,17 @@ function prepararAdmin() {
                         <input type="number" id="${matchId}-gv" style="flex:1;" placeholder="Goles" ${procesado?'disabled':''}>
                     </div>
                     <button class="btn-main" style="margin: 5px 0 0; padding:10px; ${procesado?'background:#475569;':''}" onclick="procesarFaseFinal('${matchId}', ${fase.bonus})" ${procesado?'disabled':''}>
-                        ${procesado ? 'Partido Procesado ✓' : 'Calcular Puntos y Avance ⚙️'}
+                        ${procesado ? 'Procesado ✓' : 'Calcular Avance ⚙️'}
                     </button>
-                </div>
-            `;
+                </div>`;
         }
-        htmlFase += `</div>`;
-        contKnockout.innerHTML += htmlFase;
+        htmlFase += `</div>`; contKnockout.innerHTML += htmlFase;
     });
 
-    // Llenar todos los Selects vacíos con las selecciones
-    let todos = [];
-    Object.values(equipos).forEach(lista => lista.forEach(eq => todos.push(eq.nombre)));
-    todos.sort();
-    let opciones = `<option value="">Selecciona equipo...</option>` + todos.map(t => `<option value="${t}">${t}</option>`).join('');
-    
+    let todos = []; Object.values(equipos).forEach(lista => lista.forEach(eq => todos.push(eq.nombre)));
+    todos.sort(); let opciones = `<option value="">Selecciona equipo...</option>` + todos.map(t => `<option value="${t}">${t}</option>`).join('');
     document.getElementById('team-bonus-group').innerHTML = opciones;
-    document.querySelectorAll('#knockout-container select').forEach(sel => {
-        if(sel.id.startsWith('ko-')) sel.innerHTML = opciones;
-    });
+    document.querySelectorAll('#knockout-container select').forEach(sel => { if(sel.id.startsWith('ko-')) sel.innerHTML = opciones; });
 }
 
 async function procesarPartidoGrupo(matchId, localName, visitorName) {
@@ -313,29 +348,28 @@ async function procesarFaseFinal(matchId, bonusPts) {
     if(!localName || !visitorName || isNaN(goalsL) || isNaN(goalsV)) return alert("Rellena todos los campos.");
     if(localName === visitorName) return alert("Los equipos no pueden ser iguales.");
 
-    // Detectar quién pasa (para el bono automático)
     let ganador = null;
     if (goalsL > goalsV) ganador = localName;
     else if (goalsV > goalsL) ganador = visitorName;
     else {
-        let penaltis = prompt(`¡Empate detectado! ¿Quién ganó en los penaltis?\nEscribe exactamente: "${localName}" o "${visitorName}"`);
+        let penaltis = prompt(`¡Empate! ¿Quién ganó en penaltis?\nEscribe: "${localName}" o "${visitorName}"`);
         if (penaltis === localName || penaltis === visitorName) ganador = penaltis;
-        else return alert("Nombre incorrecto. Partido cancelado.");
+        else return alert("Nombre incorrecto. Cancelado.");
     }
 
     let msg = `Cruce: ${localName} ${goalsL}-${goalsV} ${visitorName}\n¡${ganador} avanza!\n\n`;
 
     ['Jon', 'Lucia'].forEach(jugador => {
-        // Puntos de partido normal (Goles y portería, SIN victoria/derrota)
         msg += aplicarPuntosJugador(jugador, localName, goalsL, goalsV, false);
         msg += aplicarPuntosJugador(jugador, visitorName, goalsV, goalsL, false);
         
-        // Sumar Bonus automático al ganador
         if(db[jugador].draft) {
-            for (const eq of Object.values(db[jugador].draft)) {
+            for (const key in db[jugador].draft) {
+                let eq = db[jugador].draft[key];
                 if (eq.nombre === ganador) {
                     db[jugador].puntos += bonusPts;
                     db[jugador].historial.push(db[jugador].puntos);
+                    eq.puntosGanados = (eq.puntosGanados || 0) + bonusPts;
                     msg += `🏆 ${jugador}: +${bonusPts} pts EXTRA porque ${ganador} avanza.\n`;
                 }
             }
@@ -344,7 +378,7 @@ async function procesarFaseFinal(matchId, bonusPts) {
     });
 
     try { await guardarDB(); alert(msg); prepararAdmin(); } 
-    catch (e) { alert("Error guardando en la nube."); }
+    catch (e) { alert("Error guardando."); }
 }
 
 async function aplicarBonoGrupos(bonusPts) {
@@ -356,10 +390,12 @@ async function aplicarBonoGrupos(bonusPts) {
 
     ['Jon', 'Lucia'].forEach(jugador => {
         if(db[jugador].draft) {
-            for (const eq of Object.values(db[jugador].draft)) {
+            for (const key in db[jugador].draft) {
+                let eq = db[jugador].draft[key];
                 if (eq.nombre === eqName) {
                     db[jugador].puntos += bonusPts;
                     db[jugador].historial.push(db[jugador].puntos);
+                    eq.puntosGanados = (eq.puntosGanados || 0) + bonusPts;
                     msg += `➡️ ${jugador} suma ${bonusPts} pts.\n`;
                     found = true;
                 }
@@ -381,18 +417,17 @@ function verDashboard() {
 
     if (myChart) myChart.destroy();
     myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                { label: 'Jon', data: db.Jon.historial, borderColor: '#10b981', tension: 0.3, borderWidth: 3 },
-                { label: 'Lucía', data: db.Lucia.historial, borderColor: '#ec4899', tension: 0.3, borderWidth: 3 }
-            ]
-        },
+        type: 'line', data: { labels: labels, datasets: [
+            { label: 'Jon', data: db.Jon.historial, borderColor: '#10b981', tension: 0.3, borderWidth: 3 },
+            { label: 'Lucía', data: db.Lucia.historial, borderColor: '#ec4899', tension: 0.3, borderWidth: 3 }
+        ]},
         options: { responsive: true, scales: { y: { grid: { color: 'rgba(255,255,255,0.1)' } }, x: { display: false } } }
     });
 }
 
+// EXPORTACIÓN OBLIGATORIA (Asegura que el HTML pueda usar las funciones)
+window.intentarEntrarDraft = intentarEntrarDraft;
+window.intentarEntrarAdmin = intentarEntrarAdmin;
 window.mostrarPantalla = mostrarPantalla;
 window.volverInicio = volverInicio;
 window.switchAdminTab = switchAdminTab;
