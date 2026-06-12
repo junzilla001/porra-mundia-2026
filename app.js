@@ -252,7 +252,7 @@ function prepararAdmin() {
     });
 }
 
-function procesarPartidoGrupo(matchId, localName, visitorName) {
+async function procesarPartidoGrupo(matchId, localName, visitorName) {
     const goalsL = parseInt(document.getElementById(`${matchId}-l`).value);
     const goalsV = parseInt(document.getElementById(`${matchId}-v`).value);
     if (isNaN(goalsL) || isNaN(goalsV)) return alert("Faltan goles");
@@ -261,12 +261,19 @@ function procesarPartidoGrupo(matchId, localName, visitorName) {
     ['Jon', 'Lucia'].forEach(jugador => {
         msg += aplicarPuntosJugador(jugador, localName, goalsL, goalsV, true);
         msg += aplicarPuntosJugador(jugador, visitorName, goalsV, goalsL, true);
-        if(db[jugador].draft && !db[jugador].partidosProcesados.includes(matchId)) db[jugador].partidosProcesados.push(matchId);
+        if(db[jugador].draft && !db[jugador].partidosProcesados.includes(matchId)) {
+            db[jugador].partidosProcesados.push(matchId);
+        }
     });
 
-    localStorage.setItem('mundialDB_v4', JSON.stringify(db));
-    alert(msg === `G. ${localName} ${goalsL}-${goalsV} ${visitorName}\n\n` ? "Ninguno tiene estos equipos." : msg);
-    prepararAdmin();
+    try {
+        await guardarDB(); // Esperamos a que Firebase confirme el guardado
+        alert(msg === `G. ${localName} ${goalsL}-${goalsV} ${visitorName}\n\n` ? "Ninguno tiene estos equipos." : msg);
+        prepararAdmin();
+    } catch (error) {
+        console.error("Error al guardar en Firebase:", error);
+        alert("Hubo un error al guardar en la nube. Revisa tu conexión.");
+    }
 }
 
 function procesarEliminatoria() {
@@ -322,3 +329,13 @@ function verDashboard() {
         options: { responsive: true, scales: { y: { grid: { color: 'rgba(255,255,255,0.1)' } }, x: { display: false } } }
     });
 }
+window.iniciarDraft = iniciarDraft;
+window.volverInicio = volverInicio;
+window.mostrarPantalla = mostrarPantalla;
+window.confirmarDraft = confirmarDraft;
+window.switchAdminTab = switchAdminTab;
+window.procesarPartidoGrupo = procesarPartidoGrupo;
+window.procesarEliminatoria = procesarEliminatoria;
+window.aplicarBono = aplicarBono;
+window.verDashboard = verDashboard;
+window.prepararAdmin = prepararAdmin;
