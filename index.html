@@ -18,9 +18,18 @@
             <h1>🏆 MUNDIAL 2026 🏆</h1>
             <h2>Draft & Fantasy Edition</h2>
         </div>
-        <!-- Piden contraseña antes de entrar -->
+        
         <button class="btn-main btn-jon" onclick="intentarEntrarDraft('Jon')">Entrar como Jon</button>
         <button class="btn-main btn-lucia" onclick="intentarEntrarDraft('Lucia')">Entrar como Lucía</button>
+
+        <!-- NUEVO: RESUMEN DE EQUIPOS (Se muestra solo cuando hay equipos elegidos) -->
+        <div id="equipos-resumen-container" style="display: none; margin-top: 40px; animation: fadeIn 0.5s;">
+            <h2 class="section-title" style="font-size: 1.3rem;">Rendimiento de los Drafts</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div id="resumen-jon" style="flex: 1; min-width: 250px; background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px; border: 1px solid var(--jon-color);"></div>
+                <div id="resumen-lucia" style="flex: 1; min-width: 250px; background: rgba(236, 72, 153, 0.1); padding: 20px; border-radius: 12px; border: 1px solid var(--lucia-color);"></div>
+            </div>
+        </div>
     </div>
 
     <!-- DRAFT -->
@@ -115,7 +124,6 @@
         <button onclick="volverInicio()">🏠<br>Inicio</button>
         <button onclick="mostrarPantalla('screen-dashboard')">📊<br>Rank</button>
         <button onclick="mostrarPantalla('screen-rules')">📜<br>Reglas</button>
-        <!-- Pide contraseña para el Admin -->
         <button onclick="intentarEntrarAdmin()">⚙️<br>Admin</button>
     </nav>
 
