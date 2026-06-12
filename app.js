@@ -1,37 +1,32 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// !!! PEGA AQUÍ TU firebaseConfig !!!
 const firebaseConfig = {
-  apiKey: "AIzaSyCAOF7ENV5MSHYQp_-nGqhrcinZK0dOSSI",
-  authDomain: "porramundial2026-7e8a8.firebaseapp.com",
-  projectId: "porramundial2026-7e8a8",
-  storageBucket: "porramundial2026-7e8a8.firebasestorage.app",
-  messagingSenderId: "427609716936",
-  appId: "1:427609716936:web:0ea087f0ecaa96b1fc8dfd",
-  measurementId: "G-EWT5BZPWY3"
+  // Tu configuración de Firebase
 };
 
 const app = initializeApp(firebaseConfig);
 const dbFirestore = getFirestore(app);
 
-// --- MODIFICACIÓN DE TU LÓGICA ---
-// En lugar de leer de localStorage, conectamos con la nube:
 onSnapshot(doc(dbFirestore, "juego", "estado"), (doc) => {
     if (doc.exists()) {
         db = doc.data();
-        // Si el usuario está viendo el dashboard, forzamos a repintar el gráfico
         if (document.getElementById('screen-dashboard').classList.contains('active')) {
             verDashboard();
         }
     }
 });
 
-function guardarDB() {
-    setDoc(doc(dbFirestore, "juego", "estado"), db);
+async function guardarDB() {
+    try {
+        await setDoc(doc(dbFirestore, "juego", "estado"), db);
+    } catch (e) {
+        console.error("Error al guardar:", e);
+    }
 }
 
-// BASE DE DATOS AJUSTADA (Precios rebajados y optimizados)
+// BASE DE DATOS
 const equipos = {
     'A': [{nombre: 'México', precio: 160, iso: 'mx'}, {nombre: 'R. Checa', precio: 130, iso: 'cz'}, {nombre: 'R. Corea', precio: 115, iso: 'kr'}, {nombre: 'Sudáfrica', precio: 60, iso: 'za'}],
     'B': [{nombre: 'Suiza', precio: 150, iso: 'ch'}, {nombre: 'Canadá', precio: 130, iso: 'ca'}, {nombre: 'Bosnia', precio: 80, iso: 'ba'}, {nombre: 'Catar', precio: 50, iso: 'qa'}],
@@ -47,21 +42,19 @@ const equipos = {
     'L': [{nombre: 'Inglaterra', precio: 245, iso: 'gb-eng'}, {nombre: 'Croacia', precio: 155, iso: 'hr'}, {nombre: 'Ghana', precio: 90, iso: 'gh'}, {nombre: 'Panamá', precio: 55, iso: 'pa'}]
 };
 
-// LOS 72 PARTIDOS DE FASE DE GRUPOS (Generación automática para el Panel)
 const generarPartidosGrupos = () => {
     let partidos = [];
     for (const [grupo, lista] of Object.entries(equipos)) {
-        partidos.push({l: lista[0].nombre, v: lista[3].nombre, g: grupo});
-        partidos.push({l: lista[2].nombre, v: lista[1].nombre, g: grupo});
-        partidos.push({l: lista[1].nombre, v: lista[3].nombre, g: grupo});
-        partidos.push({l: lista[0].nombre, v: lista[2].nombre, g: grupo});
-        partidos.push({l: lista[1].nombre, v: lista[0].nombre, g: grupo});
-        partidos.push({l: lista[3].nombre, v: lista[2].nombre, g: grupo});
+        partidos.push({l: lista[0].nombre, v: lista[3].nombre});
+        partidos.push({l: lista[2].nombre, v: lista[1].nombre});
+        partidos.push({l: lista[1].nombre, v: lista[3].nombre});
+        partidos.push({l: lista[0].nombre, v: lista[2].nombre});
+        partidos.push({l: lista[1].nombre, v: lista[0].nombre});
+        partidos.push({l: lista[3].nombre, v: lista[2].nombre});
     }
     return partidos;
 };
 
-// ESTADO GLOBAL
 const PRESUPUESTO_INICIAL = 1500;
 let usuarioActual = '';
 let seleccionesActuales = {};
@@ -72,7 +65,22 @@ let db = JSON.parse(localStorage.getItem('mundialDB_v4')) || {
     Lucia: { draft: null, multiplicador: null, puntos: 0, historial: [0], partidosProcesados: [] }
 };
 
-// NAVEGACIÓN
+// SEGURIDAD Y NAVEGACIÓN
+window.intentarEntrarDraft = function(nombre) {
+    let pwd = prompt(`Introduce la contraseña para ${nombre}:`);
+    if (nombre === 'Jon' && pwd === 'Jonymelavo') iniciarDraft(nombre);
+    else if (nombre === 'Lucia' && pwd === 'Lucilinda') iniciarDraft(nombre);
+    else if (pwd !== null) alert("Contraseña incorrecta ❌");
+};
+
+window.intentarEntrarAdmin = function() {
+    let pwd = prompt("Introduce la Contraseña de Administrador:");
+    if (pwd === '241010') {
+        prepararAdmin();
+        mostrarPantalla('screen-admin');
+    } else if (pwd !== null) alert("Contraseña incorrecta ❌");
+};
+
 function mostrarPantalla(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -84,17 +92,14 @@ function volverInicio() { mostrarPantalla('screen-login'); seleccionesActuales =
 function switchAdminTab(tab) {
     document.getElementById('tab-matches').style.display = tab === 'matches' ? 'block' : 'none';
     document.getElementById('tab-knockout').style.display = tab === 'knockout' ? 'block' : 'none';
-    document.getElementById('tab-bonuses').style.display = tab === 'bonuses' ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
 }
 
-// LÓGICA DEL DRAFT
+// LÓGICA DRAFT
 function iniciarDraft(nombre) {
     usuarioActual = nombre;
-    if (db[nombre].draft) {
-        alert(`Ya tienes tu equipo cerrado, ${nombre}.`); return;
-    }
+    if (db[nombre].draft) return alert(`Ya tienes tu equipo cerrado, ${nombre}.`);
     seleccionesActuales = {}; 
     renderizarGrupos();
     actualizarUI();
@@ -132,7 +137,6 @@ function toggleSeleccion(grupo, equipo) {
 function actualizarUI() {
     let gastado = 0; let count = 0;
     document.querySelectorAll('.team-btn').forEach(btn => btn.classList.remove('selected'));
-    
     let opcionesMultiplicador = [];
 
     for (const [grupo, eq] of Object.entries(seleccionesActuales)) {
@@ -153,38 +157,25 @@ function actualizarUI() {
     if (restante >= 0 && count === 12) {
         panelMult.style.display = 'block';
         selectMult.innerHTML = '';
-        opcionesMultiplicador.forEach(nombre => {
-            selectMult.innerHTML += `<option value="${nombre}">${nombre}</option>`;
-        });
-        
-        if (opcionesMultiplicador.length > 0) {
-            btnConfirm.disabled = false;
-        } else {
-            btnConfirm.disabled = true;
-            selectMult.innerHTML = '<option>❌ No tienes equipos entre 100 y 140</option>';
-        }
-    } else {
-        panelMult.style.display = 'none';
-        btnConfirm.disabled = true;
-    }
+        opcionesMultiplicador.forEach(nombre => selectMult.innerHTML += `<option value="${nombre}">${nombre}</option>`);
+        if (opcionesMultiplicador.length > 0) btnConfirm.disabled = false;
+        else { btnConfirm.disabled = true; selectMult.innerHTML = '<option>❌ Faltan equipos entre 100 y 140</option>'; }
+    } else { panelMult.style.display = 'none'; btnConfirm.disabled = true; }
 }
 
-function confirmarDraft() {
+async function confirmarDraft() {
     db[usuarioActual].draft = seleccionesActuales;
     db[usuarioActual].multiplicador = document.getElementById('multiplier-select').value;
-    localStorage.setItem('mundialDB_v4', JSON.stringify(db));
+    await guardarDB();
     alert(`¡Selección bloqueada! Estrella: ${db[usuarioActual].multiplicador}`);
     volverInicio();
 }
 
-// EL MOTOR MATEMÁTICO (Separa positivos y negativos para el Multiplicador)
+// MOTOR MATEMÁTICO
 function calcularPuntosEquipo(equipoNombre, golesFavor, golesContra, esGrupo, jugador) {
-    let ptsPositivos = 0;
-    let ptsNegativos = 0;
-
+    let ptsPositivos = 0; let ptsNegativos = 0;
     ptsPositivos += (golesFavor * 3);
     ptsNegativos += (golesContra * -1);
-
     if (golesContra === 0) ptsPositivos += 3;
 
     if (esGrupo) {
@@ -192,16 +183,12 @@ function calcularPuntosEquipo(equipoNombre, golesFavor, golesContra, esGrupo, ju
         else if (golesFavor < golesContra) ptsNegativos += -3;
     }
 
-    if (db[jugador].multiplicador === equipoNombre) {
-        ptsPositivos = ptsPositivos * 2;
-    }
-
+    if (db[jugador].multiplicador === equipoNombre) ptsPositivos = ptsPositivos * 2;
     return ptsPositivos + ptsNegativos;
 }
 
 function aplicarPuntosJugador(jugador, equipoNombre, golesFavor, golesContra, esGrupo) {
     if (!db[jugador].draft) return "";
-    
     let mensaje = "";
     for (const eq of Object.values(db[jugador].draft)) {
         if (eq.nombre === equipoNombre) {
@@ -215,29 +202,17 @@ function aplicarPuntosJugador(jugador, equipoNombre, golesFavor, golesContra, es
     return mensaje;
 }
 
-// PANEL DE CONTROL (ADMIN)
+// PANEL DE ADMIN (AUTOMATIZADO)
 function prepararAdmin() {
-    const container = document.getElementById('group-matches-container');
-    container.innerHTML = '';
-    const partidos = generarPartidosGrupos();
+    const contGrupos = document.getElementById('group-matches-container');
+    const contKnockout = document.getElementById('knockout-container');
     
-    // Selects para Eliminatorias
-    const koLocal = document.getElementById('ko-local');
-    const koVisitor = document.getElementById('ko-visitor');
-    koLocal.innerHTML = ''; koVisitor.innerHTML = '';
-    let todos = [];
-    Object.values(equipos).forEach(lista => lista.forEach(eq => todos.push(eq.nombre)));
-    todos.sort().forEach(eq => {
-        koLocal.innerHTML += `<option value="${eq}">${eq}</option>`;
-        koVisitor.innerHTML += `<option value="${eq}">${eq}</option>`;
-    });
-
-    // Renderizar los 72 de grupos
-    partidos.forEach((p, index) => {
-        let matchId = `match-${index}`;
+    // 1. Renderizar Fase de Grupos
+    contGrupos.innerHTML = '';
+    generarPartidosGrupos().forEach((p, index) => {
+        let matchId = `match-g-${index}`;
         let procesado = db.Jon.partidosProcesados.includes(matchId);
-        
-        container.innerHTML += `
+        contGrupos.innerHTML += `
             <div class="match-row">
                 <div class="match-team" style="text-align:right;">${p.l}</div>
                 <div class="match-inputs">
@@ -250,6 +225,67 @@ function prepararAdmin() {
             </div>
         `;
     });
+
+    // 2. Renderizar Cuadro de Fase Final (Automático)
+    contKnockout.innerHTML = `
+        <div class="admin-panel glass" style="margin-bottom: 20px;">
+            <h3 style="color: var(--gold); margin-bottom: 15px;">Cierre Fase de Grupos</h3>
+            <p style="font-size: 0.85rem; color:#94a3b8; margin-bottom:10px;">Aplica los bonos de fin de fase aquí.</p>
+            <div style="display:flex; gap:10px;">
+                <select id="team-bonus-group" class="custom-select"></select>
+                <button class="btn-main" style="background:#10b981; padding:10px;" onclick="aplicarBonoGrupos(10)">Pasa (+10)</button>
+                <button class="btn-main" style="background:#ef4444; padding:10px;" onclick="aplicarBonoGrupos(-5)">Cae (-5)</button>
+            </div>
+        </div>
+    `;
+
+    const fasesKnockout = [
+        { id: '16avos', name: '16avos de Final', desc: 'Suma +15 al ganador', bonus: 15, matches: 16 },
+        { id: '8avos', name: 'Octavos de Final', desc: 'Suma +20 al ganador', bonus: 20, matches: 8 },
+        { id: 'cuartos', name: 'Cuartos de Final', desc: 'Suma +25 al ganador', bonus: 25, matches: 4 },
+        { id: 'semis', name: 'Semifinales', desc: 'Suma +30 al ganador', bonus: 30, matches: 2 },
+        { id: 'final', name: 'La Gran Final', desc: 'Suma +40 al Campeón', bonus: 40, matches: 1 }
+    ];
+
+    fasesKnockout.forEach(fase => {
+        let htmlFase = `<div class="admin-panel glass" style="margin-bottom: 20px;">
+            <h3 style="color: var(--accent); margin-bottom: 5px;">${fase.name}</h3>
+            <p style="font-size: 0.85rem; color:#94a3b8; margin-bottom:15px;">${fase.desc}</p>`;
+        
+        for(let i=0; i<fase.matches; i++) {
+            let matchId = `ko-${fase.id}-${i}`;
+            let procesado = db.Jon.partidosProcesados.includes(matchId);
+            htmlFase += `
+                <div class="match-row" style="flex-direction:column; gap:10px; background: rgba(15,23,42,0.8); padding:15px;">
+                    <div style="display:flex; width:100%; gap:10px; align-items:center;">
+                        <select id="${matchId}-l" class="custom-select" style="flex:3;" ${procesado?'disabled':''}></select>
+                        <input type="number" id="${matchId}-gl" style="flex:1;" placeholder="Goles" ${procesado?'disabled':''}>
+                    </div>
+                    <div style="text-align:center; color:var(--accent); font-weight:bold; font-size:0.9rem;">VS</div>
+                    <div style="display:flex; width:100%; gap:10px; align-items:center;">
+                        <select id="${matchId}-v" class="custom-select" style="flex:3;" ${procesado?'disabled':''}></select>
+                        <input type="number" id="${matchId}-gv" style="flex:1;" placeholder="Goles" ${procesado?'disabled':''}>
+                    </div>
+                    <button class="btn-main" style="margin: 5px 0 0; padding:10px; ${procesado?'background:#475569;':''}" onclick="procesarFaseFinal('${matchId}', ${fase.bonus})" ${procesado?'disabled':''}>
+                        ${procesado ? 'Partido Procesado ✓' : 'Calcular Puntos y Avance ⚙️'}
+                    </button>
+                </div>
+            `;
+        }
+        htmlFase += `</div>`;
+        contKnockout.innerHTML += htmlFase;
+    });
+
+    // Llenar todos los Selects vacíos con las selecciones
+    let todos = [];
+    Object.values(equipos).forEach(lista => lista.forEach(eq => todos.push(eq.nombre)));
+    todos.sort();
+    let opciones = `<option value="">Selecciona equipo...</option>` + todos.map(t => `<option value="${t}">${t}</option>`).join('');
+    
+    document.getElementById('team-bonus-group').innerHTML = opciones;
+    document.querySelectorAll('#knockout-container select').forEach(sel => {
+        if(sel.id.startsWith('ko-')) sel.innerHTML = opciones;
+    });
 }
 
 async function procesarPartidoGrupo(matchId, localName, visitorName) {
@@ -261,53 +297,80 @@ async function procesarPartidoGrupo(matchId, localName, visitorName) {
     ['Jon', 'Lucia'].forEach(jugador => {
         msg += aplicarPuntosJugador(jugador, localName, goalsL, goalsV, true);
         msg += aplicarPuntosJugador(jugador, visitorName, goalsV, goalsL, true);
-        if(db[jugador].draft && !db[jugador].partidosProcesados.includes(matchId)) {
-            db[jugador].partidosProcesados.push(matchId);
+        if(db[jugador].draft && !db[jugador].partidosProcesados.includes(matchId)) db[jugador].partidosProcesados.push(matchId);
+    });
+
+    try { await guardarDB(); alert(msg === `G. ${localName} ${goalsL}-${goalsV} ${visitorName}\n\n` ? "Ninguno tiene estos equipos." : msg); prepararAdmin(); } 
+    catch (e) { alert("Error guardando en la nube."); }
+}
+
+async function procesarFaseFinal(matchId, bonusPts) {
+    const localName = document.getElementById(`${matchId}-l`).value;
+    const visitorName = document.getElementById(`${matchId}-v`).value;
+    const goalsL = parseInt(document.getElementById(`${matchId}-gl`).value);
+    const goalsV = parseInt(document.getElementById(`${matchId}-gv`).value);
+
+    if(!localName || !visitorName || isNaN(goalsL) || isNaN(goalsV)) return alert("Rellena todos los campos.");
+    if(localName === visitorName) return alert("Los equipos no pueden ser iguales.");
+
+    // Detectar quién pasa (para el bono automático)
+    let ganador = null;
+    if (goalsL > goalsV) ganador = localName;
+    else if (goalsV > goalsL) ganador = visitorName;
+    else {
+        let penaltis = prompt(`¡Empate detectado! ¿Quién ganó en los penaltis?\nEscribe exactamente: "${localName}" o "${visitorName}"`);
+        if (penaltis === localName || penaltis === visitorName) ganador = penaltis;
+        else return alert("Nombre incorrecto. Partido cancelado.");
+    }
+
+    let msg = `Cruce: ${localName} ${goalsL}-${goalsV} ${visitorName}\n¡${ganador} avanza!\n\n`;
+
+    ['Jon', 'Lucia'].forEach(jugador => {
+        // Puntos de partido normal (Goles y portería, SIN victoria/derrota)
+        msg += aplicarPuntosJugador(jugador, localName, goalsL, goalsV, false);
+        msg += aplicarPuntosJugador(jugador, visitorName, goalsV, goalsL, false);
+        
+        // Sumar Bonus automático al ganador
+        if(db[jugador].draft) {
+            for (const eq of Object.values(db[jugador].draft)) {
+                if (eq.nombre === ganador) {
+                    db[jugador].puntos += bonusPts;
+                    db[jugador].historial.push(db[jugador].puntos);
+                    msg += `🏆 ${jugador}: +${bonusPts} pts EXTRA porque ${ganador} avanza.\n`;
+                }
+            }
+        }
+        if(db[jugador].draft && !db[jugador].partidosProcesados.includes(matchId)) db[jugador].partidosProcesados.push(matchId);
+    });
+
+    try { await guardarDB(); alert(msg); prepararAdmin(); } 
+    catch (e) { alert("Error guardando en la nube."); }
+}
+
+async function aplicarBonoGrupos(bonusPts) {
+    const eqName = document.getElementById('team-bonus-group').value;
+    if(!eqName) return alert("Selecciona un equipo primero.");
+    
+    let msg = `Bono de ${bonusPts} pts aplicado a ${eqName}\n\n`;
+    let found = false;
+
+    ['Jon', 'Lucia'].forEach(jugador => {
+        if(db[jugador].draft) {
+            for (const eq of Object.values(db[jugador].draft)) {
+                if (eq.nombre === eqName) {
+                    db[jugador].puntos += bonusPts;
+                    db[jugador].historial.push(db[jugador].puntos);
+                    msg += `➡️ ${jugador} suma ${bonusPts} pts.\n`;
+                    found = true;
+                }
+            }
         }
     });
 
-    try {
-        await guardarDB(); // Esperamos a que Firebase confirme el guardado
-        alert(msg === `G. ${localName} ${goalsL}-${goalsV} ${visitorName}\n\n` ? "Ninguno tiene estos equipos." : msg);
-        prepararAdmin();
-    } catch (error) {
-        console.error("Error al guardar en Firebase:", error);
-        alert("Hubo un error al guardar en la nube. Revisa tu conexión.");
-    }
+    try { await guardarDB(); alert(found ? msg : "Ninguno tiene este equipo."); } 
+    catch(e) { alert("Error al guardar."); }
 }
 
-function procesarEliminatoria() {
-    const lName = document.getElementById('ko-local').value;
-    const vName = document.getElementById('ko-visitor').value;
-    const gL = parseInt(document.getElementById('ko-goals-local').value);
-    const gV = parseInt(document.getElementById('ko-goals-visitor').value);
-    
-    if (isNaN(gL) || isNaN(gV) || lName === vName) return alert("Datos inválidos");
-
-    let msg = `K.O. ${lName} ${gL}-${gV} ${vName}\n\n`;
-    ['Jon', 'Lucia'].forEach(jugador => {
-        msg += aplicarPuntosJugador(jugador, lName, gL, gV, false);
-        msg += aplicarPuntosJugador(jugador, vName, gV, gL, false);
-    });
-
-    localStorage.setItem('mundialDB_v4', JSON.stringify(db));
-    alert(msg);
-    document.getElementById('ko-goals-local').value = ''; document.getElementById('ko-goals-visitor').value = '';
-}
-
-function aplicarBono() {
-    const player = document.getElementById('bonus-player').value;
-    const select = document.getElementById('bonus-type');
-    const pts = parseInt(select.value);
-    const reason = select.options[select.selectedIndex].text;
-
-    db[player].puntos += pts;
-    db[player].historial.push(db[player].puntos);
-    localStorage.setItem('mundialDB_v4', JSON.stringify(db));
-    alert(`✅ ${pts} pts sumados a ${player} por: ${reason}`);
-}
-
-// DASHBOARD
 function verDashboard() {
     document.getElementById('pts-jon').innerText = db.Jon.puntos;
     document.getElementById('pts-lucia').innerText = db.Lucia.puntos;
@@ -329,13 +392,14 @@ function verDashboard() {
         options: { responsive: true, scales: { y: { grid: { color: 'rgba(255,255,255,0.1)' } }, x: { display: false } } }
     });
 }
-window.iniciarDraft = iniciarDraft;
-window.volverInicio = volverInicio;
+
 window.mostrarPantalla = mostrarPantalla;
-window.confirmarDraft = confirmarDraft;
+window.volverInicio = volverInicio;
 window.switchAdminTab = switchAdminTab;
+window.iniciarDraft = iniciarDraft;
+window.toggleSeleccion = toggleSeleccion;
+window.actualizarUI = actualizarUI;
+window.confirmarDraft = confirmarDraft;
 window.procesarPartidoGrupo = procesarPartidoGrupo;
-window.procesarEliminatoria = procesarEliminatoria;
-window.aplicarBono = aplicarBono;
-window.verDashboard = verDashboard;
-window.prepararAdmin = prepararAdmin;
+window.procesarFaseFinal = procesarFaseFinal;
+window.aplicarBonoGrupos = aplicarBonoGrupos;
